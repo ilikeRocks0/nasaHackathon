@@ -62,7 +62,7 @@ class App {
     sun.material = sunMat;
 
     // Add stars to simulate space background
-    this.createStars(scene, 5000); // Create 5000 stars (you can adjust the number)
+    this.createStars(scene, 1500); // Create 1500 stars (you can adjust the number)
 
     // Planetary properties (size, semi-major axis, eccentricity, inclination for elliptical orbits)
     const planets = [
