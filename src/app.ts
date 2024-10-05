@@ -32,16 +32,16 @@ class App {
 
         // Planetary properties (size, distance from Sun, rotation speed, and eccentricity for elliptical orbits)
         const planets = [
-            { name: "Mercury", size: 0.5, semiMajorAxis: 7, speed: 0.02, eccentricity: 0.205, color: new Color3(0.7, 0.7, 0.7) },
-            { name: "Venus", size: 0.9, semiMajorAxis: 10, speed: 0.015, eccentricity: 0.0067, color: new Color3(0.8, 0.6, 0.1) },
-            { name: "Earth", size: 1, semiMajorAxis: 13, speed: 0.01, eccentricity: 0.0167, color: new Color3(0.22, 0.56, 0.89) },
-            { name: "Mars", size: 0.7, semiMajorAxis: 17, speed: 0.008, eccentricity: 0.0934, color: new Color3(1, 0.5, 0) },
-            { name: "Jupiter", size: 3, semiMajorAxis: 23, speed: 0.004, eccentricity: 0.0489, color: new Color3(0.8, 0.6, 0.4) },
-            { name: "Saturn", size: 2.5, semiMajorAxis: 30, speed: 0.003, eccentricity: 0.0565, color: new Color3(0.8, 0.7, 0.5) },
-            { name: "Uranus", size: 2, semiMajorAxis: 37, speed: 0.0025, eccentricity: 0.046, color: new Color3(0.6, 0.8, 0.9) },
-            { name: "Neptune", size: 2, semiMajorAxis: 43, speed: 0.002, eccentricity: 0.0097, color: new Color3(0.3, 0.3, 0.8) }
+            { name: "Mercury", size: 0.5, semiMajorAxis: 7, speed: 0.02, eccentricity: 0.4, color: new Color3(0.7, 0.7, 0.7) },
+            { name: "Venus", size: 0.9, semiMajorAxis: 10, speed: 0.015, eccentricity: 0.25, color: new Color3(0.8, 0.6, 0.1) },
+            { name: "Earth", size: 1, semiMajorAxis: 13, speed: 0.01, eccentricity: 0.2, color: new Color3(0.22, 0.56, 0.89) },
+            { name: "Mars", size: 0.7, semiMajorAxis: 17, speed: 0.008, eccentricity: 0.3, color: new Color3(1, 0.5, 0) },
+            { name: "Jupiter", size: 3, semiMajorAxis: 23, speed: 0.004, eccentricity: 0.25, color: new Color3(0.8, 0.6, 0.4) },
+            { name: "Saturn", size: 2.5, semiMajorAxis: 30, speed: 0.003, eccentricity: 0.35, color: new Color3(0.8, 0.7, 0.5) },
+            { name: "Uranus", size: 2, semiMajorAxis: 37, speed: 0.0025, eccentricity: 0.3, color: new Color3(0.6, 0.8, 0.9) },
+            { name: "Neptune", size: 2, semiMajorAxis: 43, speed: 0.002, eccentricity: 0.2, color: new Color3(0.3, 0.3, 0.8) }
         ];
-
+        
         // Create all the planets and orbit lines
         const planetMeshes: Mesh[] = [];
         const planetAngles: number[] = [];
