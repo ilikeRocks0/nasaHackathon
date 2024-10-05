@@ -1,8 +1,7 @@
 import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
-
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, MeshBuilder, StandardMaterial, Color3, LinesMesh, Quaternion, Matrix } from "@babylonjs/core";
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, MeshBuilder, StandardMaterial, Color3, Color4, Quaternion, Matrix } from "@babylonjs/core";
 
 class App {
     constructor() {
@@ -17,6 +16,9 @@ class App {
         var engine = new Engine(canvas, true);
         var scene = new Scene(engine);
 
+        // Set the background color to black (space)
+        scene.clearColor = new Color4(0, 0, 0, 1); // Black background for space (Color4)
+
         // Camera setup
         var camera: ArcRotateCamera = new ArcRotateCamera("Camera", Math.PI / 2, Math.PI / 4, 60, Vector3.Zero(), scene);
         camera.attachControl(canvas, true);
@@ -29,6 +31,9 @@ class App {
         var sunMat = new StandardMaterial("sunMat", scene);
         sunMat.diffuseColor = new Color3(1, 0.8, 0); // Yellowish sun color
         sun.material = sunMat;
+
+        // Add stars to simulate space background
+        this.createStars(scene, 500); // Create 500 stars (you can adjust the number)
 
         // Planetary properties (size, semi-major axis, eccentricity, inclination for elliptical orbits)
         const planets = [
@@ -85,28 +90,6 @@ class App {
             });
         };
 
-        // Helper function to create an elliptical orbit path with inclination
-        this.createOrbitPath = function(semiMajorAxis: number, eccentricity: number, inclination: number): Vector3[] {
-            const points: Vector3[] = [];
-            const semiMinorAxis = semiMajorAxis * Math.sqrt(1 - eccentricity ** 2);
-            const steps = 360; // Number of points for the ellipse
-            const tilt = Quaternion.FromEulerAngles(inclination * Math.PI / 180, 0, 0); // Apply tilt as a quaternion
-
-            for (let i = 0; i <= steps; i++) {
-                const theta = (i / steps) * 2 * Math.PI; // Angle in radians
-                const x = semiMajorAxis * (Math.cos(theta) - eccentricity); // Elliptical formula for X
-                const z = semiMinorAxis * Math.sin(theta); // Elliptical formula for Z
-                let point = new Vector3(x, 0, z);
-
-                // Apply tilt (inclination) to the orbit
-                point = Vector3.TransformCoordinates(point, tilt.toRotationMatrix(Matrix.Identity()));
-
-                points.push(point); // Push the point onto the array
-            }
-
-            return points; // Return array of points for the orbit line
-        };
-
         // Run the main render loop
         engine.runRenderLoop(() => {
             scene.render();
@@ -124,7 +107,7 @@ class App {
         });
     }
 
-    // Helper function to create an elliptical orbit path (now moved outside of constructor)
+    // Helper function to create an elliptical orbit path with inclination
     createOrbitPath(semiMajorAxis: number, eccentricity: number, inclination: number): Vector3[] {
         const points: Vector3[] = [];
         const semiMinorAxis = semiMajorAxis * Math.sqrt(1 - eccentricity ** 2);
@@ -144,6 +127,23 @@ class App {
         }
 
         return points; // Return array of points for the orbit line
+    }
+
+    // Helper function to create stars in the background
+    createStars(scene: Scene, numStars: number) {
+        for (let i = 0; i < numStars; i++) {
+            const star = MeshBuilder.CreateSphere(`star${i}`, { diameter: 0.5 }, scene); // Larger star diameter
+            const starMat = new StandardMaterial(`starMat${i}`, scene);
+            starMat.emissiveColor = new Color3(1, 1, 1); // Emissive white color so stars glow
+            star.material = starMat;
+
+            // Randomize the position of each star
+            star.position = new Vector3(
+                (Math.random() - 0.5) * 500, // Random X position within a smaller range
+                (Math.random() - 0.5) * 500, // Random Y position
+                (Math.random() - 0.5) * 500  // Random Z position
+            );
+        }
     }
 }
 
