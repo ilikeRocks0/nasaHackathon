@@ -2,7 +2,7 @@ import "@babylonjs/core/Debug/debugLayer";
 import "@babylonjs/inspector";
 import "@babylonjs/loaders/glTF";
 
-import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, MeshBuilder, StandardMaterial, Color3, LinesMesh } from "@babylonjs/core";
+import { Engine, Scene, ArcRotateCamera, Vector3, HemisphericLight, Mesh, MeshBuilder, StandardMaterial, Color3, LinesMesh, Quaternion, Matrix } from "@babylonjs/core";
 
 class App {
     constructor() {
@@ -30,18 +30,18 @@ class App {
         sunMat.diffuseColor = new Color3(1, 0.8, 0); // Yellowish sun color
         sun.material = sunMat;
 
-        // Planetary properties (size, distance from Sun, rotation speed, and eccentricity for elliptical orbits)
+        // Planetary properties (size, distance from Sun, rotation speed, eccentricity, and inclination for elliptical orbits)
         const planets = [
-            { name: "Mercury", size: 0.5, semiMajorAxis: 7, speed: 0.02, eccentricity: 0.4, color: new Color3(0.7, 0.7, 0.7) },
-            { name: "Venus", size: 0.9, semiMajorAxis: 10, speed: 0.015, eccentricity: 0.25, color: new Color3(0.8, 0.6, 0.1) },
-            { name: "Earth", size: 1, semiMajorAxis: 13, speed: 0.01, eccentricity: 0.2, color: new Color3(0.22, 0.56, 0.89) },
-            { name: "Mars", size: 0.7, semiMajorAxis: 17, speed: 0.008, eccentricity: 0.3, color: new Color3(1, 0.5, 0) },
-            { name: "Jupiter", size: 3, semiMajorAxis: 23, speed: 0.004, eccentricity: 0.25, color: new Color3(0.8, 0.6, 0.4) },
-            { name: "Saturn", size: 2.5, semiMajorAxis: 30, speed: 0.003, eccentricity: 0.35, color: new Color3(0.8, 0.7, 0.5) },
-            { name: "Uranus", size: 2, semiMajorAxis: 37, speed: 0.0025, eccentricity: 0.3, color: new Color3(0.6, 0.8, 0.9) },
-            { name: "Neptune", size: 2, semiMajorAxis: 43, speed: 0.002, eccentricity: 0.2, color: new Color3(0.3, 0.3, 0.8) }
+            { name: "Mercury", size: 0.5, semiMajorAxis: 7, speed: 0.02, eccentricity: 0.4, inclination: 7, offset: 2, color: new Color3(0.7, 0.7, 0.7) },
+            { name: "Venus", size: 0.9, semiMajorAxis: 10, speed: 0.015, eccentricity: 0.25, inclination: 3, offset: 0, color: new Color3(0.8, 0.6, 0.1) },
+            { name: "Earth", size: 1, semiMajorAxis: 13, speed: 0.01, eccentricity: 0.2, inclination: 0, offset: 0, color: new Color3(0.22, 0.56, 0.89) },
+            { name: "Mars", size: 0.7, semiMajorAxis: 17, speed: 0.008, eccentricity: 0.3, inclination: 1.85, offset: -2, color: new Color3(1, 0.5, 0) },
+            { name: "Jupiter", size: 3, semiMajorAxis: 23, speed: 0.004, eccentricity: 0.25, inclination: 1.3, offset: -1, color: new Color3(0.8, 0.6, 0.4) },
+            { name: "Saturn", size: 2.5, semiMajorAxis: 30, speed: 0.003, eccentricity: 0.35, inclination: 2.48, offset: 1, color: new Color3(0.8, 0.7, 0.5) },
+            { name: "Uranus", size: 2, semiMajorAxis: 37, speed: 0.0025, eccentricity: 0.3, inclination: 0.77, offset: -3, color: new Color3(0.6, 0.8, 0.9) },
+            { name: "Neptune", size: 2, semiMajorAxis: 43, speed: 0.002, eccentricity: 0.2, inclination: 1.77, offset: 1.5, color: new Color3(0.3, 0.3, 0.8) }
         ];
-        
+
         // Create all the planets and orbit lines
         const planetMeshes: Mesh[] = [];
         const planetAngles: number[] = [];
@@ -51,14 +51,14 @@ class App {
             const mat = new StandardMaterial(`${planet.name}Mat`, scene);
             mat.diffuseColor = planet.color; // Set planet color
             mesh.material = mat;
-            
+
             // Set the initial position of each planet
-            mesh.position = new Vector3(planet.semiMajorAxis, 0, 0);
+            mesh.position = new Vector3(planet.semiMajorAxis + planet.offset, 0, 0);
             planetMeshes.push(mesh);
             planetAngles.push(0); // Initial angle for each planet
 
             // Create an orbit path for each planet
-            const orbitPoints = this.createOrbitPath(planet.semiMajorAxis, planet.eccentricity);
+            const orbitPoints = this.createOrbitPath(planet.semiMajorAxis, planet.eccentricity, planet.offset, planet.inclination);
             MeshBuilder.CreateLines(planet.name + "Orbit", { points: orbitPoints, updatable: false }, scene);
         });
 
@@ -69,12 +69,34 @@ class App {
                 const semiMinorAxis = planet.semiMajorAxis * Math.sqrt(1 - planet.eccentricity ** 2);
 
                 // Update planet's position based on elliptical orbit (X and Z position)
-                planetMeshes[index].position.x = planet.semiMajorAxis * Math.cos(planetAngles[index]);
+                planetMeshes[index].position.x = (planet.semiMajorAxis + planet.offset) * Math.cos(planetAngles[index]);
                 planetMeshes[index].position.z = semiMinorAxis * Math.sin(planetAngles[index]);
 
                 // Increment the angle for the next frame (rotation)
                 planetAngles[index] += planet.speed;
             });
+        };
+
+        // Helper function to create an elliptical orbit path with inclination and offset
+        this.createOrbitPath = function(semiMajorAxis: number, eccentricity: number, offset: number, inclination: number): Vector3[] {
+            const points: Vector3[] = [];
+            const semiMinorAxis = semiMajorAxis * Math.sqrt(1 - eccentricity ** 2);
+            const steps = 360; // Number of points for the ellipse
+            const tilt = Quaternion.FromEulerAngles(inclination * Math.PI / 180, 0, 0); // Apply tilt as a quaternion
+
+            for (let i = 0; i <= steps; i++) {
+                const theta = (i / steps) * 2 * Math.PI; // Angle in radians
+                const x = (semiMajorAxis + offset) * Math.cos(theta); // X coordinate
+                const z = semiMinorAxis * Math.sin(theta); // Z coordinate
+                let point = new Vector3(x, 0, z);
+
+                // Apply tilt (inclination) to the orbit
+                point = Vector3.TransformCoordinates(point, tilt.toRotationMatrix(Matrix.Identity()));
+
+                points.push(point); // Push the point onto the array
+            }
+
+            return points; // Return array of points for the orbit line
         };
 
         // Run the main render loop
@@ -94,17 +116,23 @@ class App {
         });
     }
 
-    // Helper function to create an elliptical orbit path
-    createOrbitPath(semiMajorAxis: number, eccentricity: number): Vector3[] {
+    // Helper function to create an elliptical orbit path (now moved outside of constructor)
+    createOrbitPath(semiMajorAxis: number, eccentricity: number, offset: number, inclination: number): Vector3[] {
         const points: Vector3[] = [];
         const semiMinorAxis = semiMajorAxis * Math.sqrt(1 - eccentricity ** 2);
         const steps = 360; // Number of points for the ellipse
+        const tilt = Quaternion.FromEulerAngles(inclination * Math.PI / 180, 0, 0); // Apply tilt as a quaternion
 
         for (let i = 0; i <= steps; i++) {
             const theta = (i / steps) * 2 * Math.PI; // Angle in radians
-            const x = semiMajorAxis * Math.cos(theta); // X coordinate
+            const x = (semiMajorAxis + offset) * Math.cos(theta); // X coordinate
             const z = semiMinorAxis * Math.sin(theta); // Z coordinate
-            points.push(new Vector3(x, 0, z)); // Push the point onto the array
+            let point = new Vector3(x, 0, z);
+
+            // Apply tilt (inclination) to the orbit
+            point = Vector3.TransformCoordinates(point, tilt.toRotationMatrix(Matrix.Identity()));
+
+            points.push(point); // Push the point onto the array
         }
 
         return points; // Return array of points for the orbit line
